@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'self'" />
+    <title>Vaultly</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <span class="logo">🔐 Vaultly</span>
+        <button id="logoutBtn" class="link-btn hidden">Sign out</button>
+      </header>
+
+      <!-- LOGIN VIEW -->
+      <section id="loginView" class="view">
+        <form id="loginForm">
+          <label>Email</label>
+          <input type="email" id="loginEmail" required />
+
+          <label>Login Password</label>
+          <input type="password" id="loginAuthPassword" required />
+
+          <label>Master (Vault) Password</label>
+          <input type="password" id="loginMasterPassword" required />
+
+          <p id="loginError" class="error hidden"></p>
+          <button type="submit" class="primary-btn">Unlock Vault</button>
+        </form>
+        <p class="muted">Don't have an account? Register on the Vaultly web app first.</p>
+      </section>
+
+      <!-- UNLOCK VIEW (token exists, but master key not yet derived this session) -->
+      <section id="unlockView" class="view hidden">
+        <p class="muted">Welcome back<span id="unlockEmail"></span>. Enter your master password to unlock.</p>
+        <form id="unlockForm">
+          <label>Master (Vault) Password</label>
+          <input type="password" id="unlockMasterPassword" required />
+          <p id="unlockError" class="error hidden"></p>
+          <button type="submit" class="primary-btn">Unlock</button>
+        </form>
+      </section>
+
+      <!-- VAULT VIEW -->
+      <section id="vaultView" class="view hidden">
+        <div class="matches">
+          <h2>Matches for this site</h2>
+          <div id="matchList" class="item-list"></div>
+        </div>
+
+        <button id="showAddFormBtn" class="secondary-btn">+ Add login for this site</button>
+
+        <form id="addForm" class="hidden">
+          <label>Website name</label>
+          <input type="text" id="addWebsiteName" required />
+          <label>Website URL</label>
+          <input type="text" id="addWebsiteUrl" required />
+          <label>Username</label>
+          <input type="text" id="addUsername" required />
+          <label>Password</label>
+          <div class="pw-row">
+            <input type="text" id="addPassword" required />
+            <button type="button" id="generateBtn" title="Generate">🎲</button>
+          </div>
+
+          <!-- Strength meter (Feature 9) -->
+          <div class="strength">
+            <div class="strength-track"><div id="strengthBar" class="strength-bar"></div></div>
+            <span id="strengthLabel" class="strength-label"></span>
+          </div>
+
+          <!-- Generator options (Feature 8) -->
+          <details class="gen-opts">
+            <summary>Generator options</summary>
+            <div class="gen-row">
+              <label for="genLength">Length: <span id="genLengthVal">20</span></label>
+              <input type="range" id="genLength" min="8" max="64" value="20" />
+            </div>
+            <div class="gen-checks">
+              <label><input type="checkbox" id="genUpper" checked /> A-Z</label>
+              <label><input type="checkbox" id="genLower" checked /> a-z</label>
+              <label><input type="checkbox" id="genNumbers" checked /> 0-9</label>
+              <label><input type="checkbox" id="genSymbols" checked /> !@#</label>
+              <label><input type="checkbox" id="genAmbiguous" /> No ambiguous</label>
+            </div>
+          </details>
+
+          <p id="addError" class="error hidden"></p>
+          <button type="submit" class="primary-btn">Save securely</button>
+        </form>
+
+        <hr />
+        <details>
+          <summary>All saved logins (<span id="allCount">0</span>)</summary>
+          <div id="allList" class="item-list"></div>
+        </details>
+      </section>
+    </div>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
