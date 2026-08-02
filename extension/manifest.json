@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vaultly — Zero-Knowledge Password Manager",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Securely store and autofill passwords with client-side AES-256-GCM encryption. Plaintext never leaves your device.",
   "action": {
     "default_popup": "popup.html",
@@ -29,7 +29,9 @@
     "scripting",
     "tabs",
     "contextMenus",
-    "notifications"
+    "notifications",
+    "alarms",
+    "idle"
   ],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_security_policy": {

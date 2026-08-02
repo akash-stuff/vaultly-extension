@@ -48,9 +48,17 @@ export function initAutoLock(options) {
   }
 }
 
-/** (Re)start the idle countdown. Call on any meaningful user activity. */
+/** (Re)start the idle countdown. Call on any meaningful user activity.
+ *  A timeout of 0 means "no idle lock" (stay unlocked until the browser
+ *  closes / worker dies) — we simply don't schedule an alarm in that case. */
 export async function noteActivity() {
-  const mins = Math.max(1, Number(await cfg.getTimeoutMinutes()) || 15);
+  const raw = Number(await cfg.getTimeoutMinutes());
+  if (!raw || raw <= 0) {
+    // 0 = "until browser closes": cancel any pending alarm, don't reschedule.
+    chrome.alarms.clear(ALARM_NAME);
+    return;
+  }
+  const mins = Math.max(1, raw);
   // A single non-repeating alarm; scheduling again replaces the old one.
   chrome.alarms.create(ALARM_NAME, { delayInMinutes: mins });
 }

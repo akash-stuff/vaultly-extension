@@ -31,6 +31,7 @@
 
 import { deriveMasterKey, encryptPassword, decryptPassword } from './shared/crypto.js';
 import { getRootDomain, isSameSite } from './shared/domainUtils.js';
+import { initAutoLock, noteActivity, cancelAutoLock } from './shared/autoLock.js';
 import { API_BASE_URL } from './config.js';
 
 // ---- In-memory unlocked-session state (dies with the worker = auto-lock) ----
@@ -82,6 +83,7 @@ async function unlock({ token, user, masterPassword, items }) {
     }
   }
   await refreshBadgeForActiveTab();
+  noteActivity(); // start/refresh the idle-lock countdown for this session
 }
 
 function lock() {
@@ -91,6 +93,22 @@ function lock() {
   vault = new Map();
   chrome.action.setBadgeText({ text: '' });
 }
+
+// Wire the (previously unused) auto-lock module. Timeout is read from
+// chrome.storage.local, set by the Settings screen. Default 0 = "until browser
+// closes" (matches the chosen session-unlock behavior); a positive value adds
+// an idle lock on top. The worker dying already locks us; this adds a timed
+// lock for long-lived workers and locks on OS screen-lock.
+initAutoLock({
+  onLock: () => {
+    lock();
+    notify('Vault locked', 'Locked after inactivity.');
+  },
+  getTimeoutMinutes: async () => {
+    const { autoLockMins } = await chrome.storage.local.get('autoLockMins');
+    return autoLockMins ?? 0;
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Domain-scoped lookups (Feature 5 matching, powered by domainUtils)
@@ -248,12 +266,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           break;
         case 'LOCK':
           lock();
+          cancelAutoLock();
           notify('Vault locked', '');
           sendResponse({ ok: true });
           break;
         case 'IS_UNLOCKED':
           sendResponse({ unlocked: isUnlocked() });
           break;
+        case 'NOTE_ACTIVITY':
+          // Settings changed the timeout, or the popup wants to refresh the
+          // idle countdown. Only meaningful while unlocked.
+          if (isUnlocked()) noteActivity();
+          sendResponse({ ok: true });
+          break;
+        case 'GET_VAULT': {
+          // Lets the popup resume an already-unlocked session WITHOUT re-asking
+          // for the master PIN. The worker still holds the decrypted vault in
+          // memory for this browser session; we hand back the full list (incl.
+          // plaintext) over the internal extension channel only — never HTTP,
+          // never to a page. If locked, the popup falls back to the unlock view.
+          if (!isUnlocked()) {
+            sendResponse({ unlocked: false });
+          } else {
+            noteActivity(); // opening the popup counts as activity
+            sendResponse({
+              unlocked: true,
+              user: userMeta,
+              items: [...vault.values()],
+            });
+          }
+          break;
+        }
         case 'CACHE_ITEM': {
           // Popup saved/edited an item and already has the plaintext; mirror it
           // into the worker's unlocked cache so autofill sees it immediately.
