@@ -28,7 +28,11 @@ function showView(id) {
   );
   const inVault = id === 'vaultView' || id === 'settingsView';
   $('settingsBtn').classList.toggle('hidden', id !== 'vaultView');
-  $('lockBtn').classList.toggle('hidden', !inVault);
+  // Also offered on the unlock screen: without it a user whose token has gone
+  // stale has no way back to the login form.
+  $('lockBtn').classList.toggle('hidden', !inVault && id !== 'unlockView');
+  $('lockBtn').title = inVault ? 'Lock vault' : 'Sign out';
+  $('lockBtn').setAttribute('aria-label', $('lockBtn').title);
 }
 
 async function apiFetch(path, options = {}) {
@@ -41,8 +45,30 @@ async function apiFetch(path, options = {}) {
     },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || 'Request failed');
+  if (!res.ok) {
+    // Carry the status so callers can tell "your JWT died" apart from "your
+    // input was wrong". Access tokens last 15 minutes but chrome.storage.session
+    // keeps them for the whole browser session, so an expired token on the
+    // unlock screen is the common case, not an edge case.
+    const err = new Error(data.message || 'Request failed');
+    err.status = res.status;
+    throw err;
+  }
   return data;
+}
+
+/**
+ * The token is dead. Drop every trace of the session and send the user back to
+ * the login form — mirrors the web app's `vaultly:unauthorized` handling.
+ */
+async function handleUnauthorized(message = 'Your session expired. Sign in again.') {
+  authToken = null; userMeta = null; masterKey = null; vaultItems = [];
+  await chrome.storage.session.clear();
+  chrome.runtime.sendMessage({ type: 'LOCK' }).catch(() => {});
+  $('unlockError').classList.add('hidden');
+  $('loginError').textContent = message;
+  $('loginError').classList.remove('hidden');
+  showView('loginView');
 }
 
 function extractDomain(url) {
@@ -159,6 +185,13 @@ $('unlockForm').addEventListener('submit', async (e) => {
     renderVault();
     showView('vaultView');
   } catch (err) {
+    // A 401 here is the stored JWT expiring, not a bad PIN — reporting it as
+    // "Incorrect master PIN" sent users round in circles retyping a PIN that
+    // was correct all along.
+    if (err.status === 401) {
+      await handleUnauthorized();
+      return;
+    }
     $('unlockError').textContent = 'Incorrect master PIN';
     $('unlockError').classList.remove('hidden');
   }
@@ -402,6 +435,10 @@ $('addForm').addEventListener('submit', async (e) => {
     refreshStrength();
     toast('Login saved');
   } catch (err) {
+    if (err.status === 401) {
+      await handleUnauthorized();
+      return;
+    }
     $('addError').textContent = err.message;
     $('addError').classList.remove('hidden');
   }

@@ -55,7 +55,18 @@ async function api(path, options = {}) {
     },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || 'Request failed');
+  if (!res.ok) {
+    if (res.status === 401) {
+      // The JWT outlives nothing: 15-minute expiry, while this worker can stay
+      // alive far longer. Holding a dead token would leave the popup showing an
+      // unlocked vault whose writes all fail, so drop the session instead.
+      lock();
+      notify('Vault locked', 'Your session expired. Open Vaultly to sign in again.');
+    }
+    const err = new Error(data.message || 'Request failed');
+    err.status = res.status;
+    throw err;
+  }
   return data;
 }
 
