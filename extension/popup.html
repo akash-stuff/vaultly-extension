@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'self'" />
+    <title>Vaultly</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="header">
+      <span class="brand">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#6d5ef0"/></linearGradient></defs>
+          <path d="M16 2.5 27 6.5v8c0 7-4.7 12.7-11 15.5C9.7 27.2 5 21.5 5 14.5v-8L16 2.5Z" fill="url(#g)"/>
+          <circle cx="16" cy="14" r="3.1" stroke="#fff" stroke-width="2" fill="none"/>
+          <path d="M16 17v4.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Vaultly
+      </span>
+      <div class="header-actions">
+        <button id="settingsBtn" class="icon-btn hidden" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        </button>
+        <button id="lockBtn" class="icon-btn hidden" title="Lock vault" aria-label="Lock vault">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- LOGIN VIEW -->
+    <section id="loginView" class="view body hidden">
+      <div class="auth-hero">
+        <svg class="auth-shield" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#6d5ef0"/></linearGradient></defs>
+          <path d="M16 2.5 27 6.5v8c0 7-4.7 12.7-11 15.5C9.7 27.2 5 21.5 5 14.5v-8L16 2.5Z" fill="url(#g2)"/>
+          <circle cx="16" cy="14" r="3.1" stroke="#fff" stroke-width="2" fill="none"/><path d="M16 17v4.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h1>Unlock Vaultly</h1>
+        <p>Two keys: your login password proves it's you, your master PIN unlocks the vault.</p>
+      </div>
+      <form id="loginForm">
+        <label>Email</label>
+        <div class="field-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required />
+        </div>
+        <label>Login password</label>
+        <div class="field-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="loginAuthPassword" placeholder="Account password" required />
+          <button type="button" class="reveal-btn" data-reveal="loginAuthPassword" aria-label="Show password"></button>
+        </div>
+        <label>Master PIN</label>
+        <div class="field-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+          <input type="password" id="loginMasterPassword" placeholder="Your vault PIN" required />
+          <button type="button" class="reveal-btn" data-reveal="loginMasterPassword" aria-label="Show PIN"></button>
+        </div>
+        <p class="helper">Your PIN is used locally to decrypt your vault. It never reaches our servers.</p>
+        <p id="loginError" class="error hidden"></p>
+        <button type="submit" class="primary-btn">Unlock Vault</button>
+      </form>
+      <p class="helper" style="text-align:center;margin-top:14px">No account? Register on the Vaultly web app first.</p>
+    </section>
+
+    <!-- UNLOCK VIEW (token cached, PIN needed) -->
+    <section id="unlockView" class="view body hidden">
+      <div class="auth-hero">
+        <svg class="auth-shield" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 2.5 27 6.5v8c0 7-4.7 12.7-11 15.5C9.7 27.2 5 21.5 5 14.5v-8L16 2.5Z" fill="url(#g2)"/>
+          <circle cx="16" cy="14" r="3.1" stroke="#fff" stroke-width="2" fill="none"/><path d="M16 17v4.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h1>Welcome back</h1>
+        <p id="unlockEmail"></p>
+      </div>
+      <form id="unlockForm">
+        <label>Master PIN</label>
+        <div class="field-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+          <input type="password" id="unlockMasterPassword" placeholder="Enter your PIN to unlock" required autofocus />
+          <button type="button" class="reveal-btn" data-reveal="unlockMasterPassword" aria-label="Show PIN"></button>
+        </div>
+        <p id="unlockError" class="error hidden"></p>
+        <button type="submit" class="primary-btn">Unlock</button>
+      </form>
+    </section>
+
+    <!-- VAULT VIEW -->
+    <section id="vaultView" class="view body hidden">
+      <!-- health strip -->
+      <div id="healthStrip" class="health hidden">
+        <div class="ring">
+          <svg width="52" height="52"><circle cx="26" cy="26" r="22" fill="none" stroke="var(--surface-2)" stroke-width="6"/><circle id="healthRing" cx="26" cy="26" r="22" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round"/></svg>
+          <div id="healthScore" class="score">0</div>
+        </div>
+        <div class="health-meta">
+          <div class="h-title">Vault health</div>
+          <div class="health-stats">
+            <span class="stat"><b id="hTotal">0</b> logins</span>
+            <span class="stat warn"><b id="hWeak">0</b> weak</span>
+            <span class="stat bad"><b id="hReused">0</b> reused</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- search -->
+      <div class="search-wrap">
+        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="searchInput" placeholder="Search logins…" autocomplete="off" />
+      </div>
+
+      <div id="matchesSection">
+        <div class="section-label">This site</div>
+        <div id="matchList" class="item-list"></div>
+      </div>
+
+      <button id="showAddFormBtn" class="ghost-btn add-toggle">+ Add login for this site</button>
+
+      <form id="addForm" class="hidden">
+        <label>Website name</label>
+        <input type="text" id="addWebsiteName" required />
+        <label>Website URL</label>
+        <input type="text" id="addWebsiteUrl" required />
+        <label>Username</label>
+        <input type="text" id="addUsername" required />
+        <label>Password</label>
+        <div class="pw-row">
+          <input type="text" id="addPassword" required />
+          <button type="button" id="generateBtn" class="gen-btn" title="Generate">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2m0 20v-2M8 4l1.5 1.5M4 8l1.5 1.5m0 9L4 20m15-4 1.5 1.5M20 8l-1.5 1.5"/><circle cx="12" cy="12" r="4"/></svg>
+          </button>
+        </div>
+        <div class="strength"><div class="strength-track"><div id="strengthBar" class="strength-bar"></div></div><span id="strengthLabel" class="strength-label"></span></div>
+        <details class="gen-opts">
+          <summary>Generator options</summary>
+          <div class="gen-row"><label for="genLength" style="margin:0">Length: <span id="genLengthVal">20</span></label><input type="range" id="genLength" min="8" max="64" value="20" /></div>
+          <div class="gen-checks">
+            <label><input type="checkbox" id="genUpper" checked /> A-Z</label>
+            <label><input type="checkbox" id="genLower" checked /> a-z</label>
+            <label><input type="checkbox" id="genNumbers" checked /> 0-9</label>
+            <label><input type="checkbox" id="genSymbols" checked /> !@#</label>
+            <label><input type="checkbox" id="genAmbiguous" /> No ambiguous</label>
+          </div>
+        </details>
+        <p id="addError" class="error hidden"></p>
+        <button type="submit" class="primary-btn">Save securely</button>
+      </form>
+
+      <div class="section-label"><span>All logins</span><span id="allCount" class="muted"></span></div>
+      <div id="allList" class="item-list scroll"></div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="settingsView" class="view body hidden">
+      <button id="settingsBackBtn" class="link-btn back-btn" style="margin-bottom:14px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back
+      </button>
+      <div class="settings-group">
+        <div class="sg-title">Auto-lock</div>
+        <p class="muted" style="margin-bottom:8px">Re-ask for your PIN after this much idle time. "Until browser closes" keeps you unlocked for the whole session.</p>
+        <div class="seg" id="autoLockSeg">
+          <button data-mins="0">Off</button>
+          <button data-mins="5">5m</button>
+          <button data-mins="15">15m</button>
+          <button data-mins="30">30m</button>
+          <button data-mins="60">1h</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="sg-title">About</div>
+        <div class="setting-row"><span class="sr-label">Version</span><span class="sr-sub" id="aboutVersion">—</span></div>
+        <div class="setting-row"><span class="sr-label">Encryption</span><span class="sr-sub">AES-256-GCM · PBKDF2</span></div>
+        <div class="setting-row"><span class="sr-label">Open web vault</span><a href="#" id="openWebVault" class="link-btn">Open ↗</a></div>
+      </div>
+      <button id="settingsLockBtn" class="ghost-btn">Lock vault now</button>
+    </section>
+
+    <div id="toastHost"></div>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
