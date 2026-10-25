@@ -9,7 +9,7 @@ import {
 import { deriveMasterKey, encryptPassword, decryptPassword } from './shared/crypto.js';
 import { generatePassword, estimateStrength } from './shared/passwordUtils.js';
 import { searchItems } from './shared/search.js';
-import { scanVault } from './shared/vaultHealth.js';
+import { scanVault, scanBreaches } from './shared/vaultHealth.js';
 import { BRAND_COLORS, brandShort, expiresSoon } from './shared/cards.js';
 import { getPinMode, setPinMode as persistPinMode } from './shared/stayUnlocked.js';
 import { generateTotp, parseTotp, totpFromBlob, prettyCode } from './shared/totp.js';
@@ -400,6 +400,15 @@ function renderHealth() {
   const color = score >= 80 ? '#10b981' : score >= 55 ? '#f59e0b' : score >= 30 ? '#f97316' : '#ef4444';
   ring.style.stroke = color;
   $('healthScore').style.color = color;
+
+  // Breach check runs async in the background (limited to 50 items)
+  scanBreaches(vaultItems.map((i) => ({ id: i._id, password: i.password })), 50)
+    .then((breachedIds) => {
+      $('hBreached').textContent = breachedIds.size;
+    })
+    .catch(() => {
+      $('hBreached').textContent = '—';
+    });
 }
 
 function applyFilterAndRender() {

@@ -8,4 +8,4 @@ export const API_BASE_URL = 'https://vaultly-service.onrender.com/api';
  * vault" link at the backend, which serves JSON.
  * Change this if the UI is deployed somewhere else.
  */
-export const WEB_APP_URL = 'https://vaultly-ui.netlify.app';
+export const WEB_APP_URL = 'https://vaultly-ui.onrender.com';

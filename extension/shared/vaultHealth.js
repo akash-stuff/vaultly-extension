@@ -108,8 +108,47 @@ export function scanVault(items, opts = {}) {
  *     break;
  * Then render report.healthScore + the four count lists in a dashboard view.
  *
- * NOTE — "Compromised" (Feature 19, future): check passwords against Have I
- * Been Pwned using k-anonymity (SHA-1 the password, send only the first 5 hex
+ * NOTE — "Compromised" (Feature 19): checks passwords against Have I Been
+ * Pwned using k-anonymity (SHA-1 the password, send only the first 5 hex
  * chars to api.pwnedpasswords.com/range/<prefix>, compare suffixes locally).
- * The full password never leaves the device. Add as `breached` once ready.
+ * The full password never leaves the device.
  */
+
+/**
+ * Check a password against the HIBP k-anonymity API.
+ * Only the first 5 chars of the SHA-1 hash are sent — the full password
+ * never leaves the device.
+ */
+export async function checkBreach(password) {
+  try {
+    const enc = new TextEncoder();
+    const hashBuf = await crypto.subtle.digest('SHA-1', enc.encode(password));
+    const hashHex = Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+      .toUpperCase();
+    const prefix = hashHex.slice(0, 5);
+    const suffix = hashHex.slice(5);
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+    if (!res.ok) return false;
+    const text = await res.text();
+    return text.split('\n').some(line => line.startsWith(suffix));
+  } catch {
+    return false; // network error — don't flag
+  }
+}
+
+/**
+ * Run breach checks on a set of items. Limited to `limit` items to avoid
+ * rate limiting. Returns a Set of breached item ids.
+ */
+export async function scanBreaches(items, limit = 50) {
+  const breached = new Set();
+  const checked = items.slice(0, limit);
+  for (const it of checked) {
+    if (it.password && await checkBreach(it.password)) {
+      breached.add(it.id);
+    }
+  }
+  return breached;
+}
